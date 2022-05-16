@@ -55,8 +55,10 @@ def rand2Bin(i, popsize, pop, dimensions, F, crossp):
 def currentToRand1(i, popsize, pop, dimensions, F, crossp):
     idxs = [idx for idx in range(popsize) if idx != i]
     a, b, c = pop[np.random.choice(idxs, 3, replace = False)]
-    mutant = np.clip(a + F * (b - c), 0, 1) # np.clip aim to restrict the value to [0,1]
-    return pop[i] + random.uniform(0, 1)*(mutant-pop[i])
+    mutant = a + F * (b - c)
+    newpop =  pop[i] + random.uniform(0, 1)*(mutant-pop[i])
+    newpop = np.clip(newpop, 0, 1)
+    return newpop
 
 
 
