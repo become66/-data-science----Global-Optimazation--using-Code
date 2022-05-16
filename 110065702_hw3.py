@@ -43,6 +43,21 @@ def rand1Bin(i, popsize, pop, dimensions, F, crossp):
         cross_points[np.random.randint(0, dimensions)] = True # avoid False for all dimension
     return np.where(cross_points, mutant, pop[i]) # generate new candidate base on cross_points
 
+def rand2Bin(i, popsize, pop, dimensions, F, crossp):
+    idxs = [idx for idx in range(popsize) if idx != i]
+    a, b, c, d, e = pop[np.random.choice(idxs, 5, replace = False)]
+    mutant = np.clip(a + F * (b - c + d - e), 0, 1) # np.clip aim to restrict the value to [0,1]
+    cross_points = np.random.rand(dimensions) < crossp # cross_points is an array like [False  True False False True False .....]
+    if not np.any(cross_points):
+        cross_points[np.random.randint(0, dimensions)] = True # avoid False for all dimension
+    return np.where(cross_points, mutant, pop[i]) # generate new candidate base on cross_points
+
+def currentToRand1(i, popsize, pop, dimensions, F, crossp):
+    idxs = [idx for idx in range(popsize) if idx != i]
+    a, b, c = pop[np.random.choice(idxs, 3, replace = False)]
+    mutant = np.clip(a + F * (b - c), 0, 1) # np.clip aim to restrict the value to [0,1]
+    return pop[i] + random.uniform(0, 1)*(mutant-pop[i])
+
 
 
 class DE_optimizer(Function): # need to inherit this class "Function"
