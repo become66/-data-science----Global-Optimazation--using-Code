@@ -22,7 +22,7 @@ def de(function, bounds,  popsize, parameterPool):
     while True:
         for i in range(popsize):
             parameter = parameterPool[random.randrange(len(parameterPool))]
-            trial = rand1Bin(i, popsize, pop, dimensions, parameter[0], parameter[1])
+            trial = currentToRand1(i, popsize, pop, dimensions, parameter[0], parameter[1])
             trial_denorm = min_b + trial * diff
             f = function(trial_denorm)
             if f < fitness[i]:
@@ -54,8 +54,10 @@ def rand2Bin(i, popsize, pop, dimensions, F, crossp):
 def currentToRand1(i, popsize, pop, dimensions, F, crossp):
     idxs = [idx for idx in range(popsize) if idx != i]
     a, b, c = pop[np.random.choice(idxs, 3, replace = False)]
-    mutant = np.clip(a + F * (b - c), 0, 1) # np.clip aim to restrict the value to [0,1]
-    return pop[i] + random.uniform(0, 1)*(mutant-pop[i])
+    mutant = a + F * (b - c)
+    newpop =  pop[i] + random.uniform(0, 1)*(mutant-pop[i])
+    newpop = np.clip(newpop, 0, 1)
+    return newpop
 
 class DE_optimizer(Function): # need to inherit this class "Function"
     def __init__(self, target_func):
@@ -115,7 +117,7 @@ if __name__ == '__main__':
             parameterPool = [[F, CR]]
             
             fitnessList = [[] for _ in range(4)]
-            for i in range(30):
+            for i in range(5):
                 func_num = 1
                 while func_num < 5:
                     if func_num == 1:
@@ -139,7 +141,7 @@ if __name__ == '__main__':
             fitnessNParray = np.array(fitnessList)
             # print(fitnessNParray)
             firnessPerFunction = np.average(fitnessNParray, axis=1)
-            # print(firnessPerFunction)
+            print(firnessPerFunction)
 
             printFile = True
             baseLine = [1.0e-6, 4.0e-9, 0.2, 0.5]
