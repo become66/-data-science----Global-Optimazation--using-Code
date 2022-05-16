@@ -6,7 +6,7 @@ import random
 from HomeworkFramework import Function
 
 
-parameterPool = [[0.3,0.1],[0.3,0.9],[0.2,0.2]]
+parameterPool = [[0.3,0.1]]
 
 # source of this function: https://pablormier.github.io/2017/09/05/a-tutorial-on-differential-evolution-with-python/ 
 
@@ -94,16 +94,16 @@ class DE_optimizer(Function): # need to inherit this class "Function"
         de_Generator = de(self.evalFunc, boundList, self.popsize, self.parameterPool)
         self.generation+=1
         while self.generation*self.popsize < FES:
-            print('=====================FE=====================')
-            print(self.generation*self.popsize)
+            # print('=====================FE=====================')
+            # print(self.generation*self.popsize)
             self.optimal_solution, self.optimal_value = next(de_Generator)
             self.generation+=1
-            print("optimal: {}\n".format(self.get_optimal()[1]))
+            # print("optimal: {}\n".format(self.get_optimal()[1]))
 
             
 
 if __name__ == '__main__':
-    func_num = 1
+
     fes = 0
 
     # op = DE_optimizer(1)
@@ -111,26 +111,48 @@ if __name__ == '__main__':
 
 
     # function1: 1000, function2: 1500, function3: 2000, function4: 2500
-    while func_num < 5:
-        if func_num == 1:
-            fes = 1000
-        elif func_num == 2:
-            fes = 1500
-        elif func_num == 3:
-            fes = 2000 
-        else:
-            fes = 2500
 
-        # you should implement your optimizer
-        op = DE_optimizer(func_num)
-        op.run(fes)
-        
-        best_input, best_value = op.get_optimal()
-        print(best_input, best_value)
-        
-        # change the name of this file to your student_ID and it will output properlly
-        with open("{}_function{}.txt".format(__file__.split('_')[0], func_num), 'w+') as f:
-            for i in range(op.dim):
-                f.write("{}\n".format(best_input[i]))
-            f.write("{}\n".format(best_value))
-        func_num += 1 
+    fitnessList = [[] for _ in range(4)]
+    for i in range(10):
+        print(i)
+        func_num = 1
+        while func_num < 5:
+            if func_num == 1:
+                fes = 1000
+            elif func_num == 2:
+                fes = 1500
+            elif func_num == 3:
+                fes = 2000 
+            else:
+                fes = 2500
+
+            # you should implement your optimizer
+            op = DE_optimizer(func_num)
+            op.run(fes)
+            
+            best_input, best_value = op.get_optimal()
+            fitnessList[func_num-1].append(best_value)
+
+
+            
+                
+            
+            func_num += 1 
+
+    fitnessNParray = np.array(fitnessList)
+    print(fitnessNParray)
+    firnessPerFunction = np.average(fitnessNParray, axis=1)
+    print(firnessPerFunction)
+
+    with open("./avergeFitness.txt",'w') as f:
+        f.write("parameter: {}\n".format(parameterPool))
+        for i in range(4):
+            f.write("function{}: ".format(i+1))
+            f.write("{}\n".format(firnessPerFunction[i]))
+
+
+
+# with open("{}_function{}.txt".format(__file__.split('_')[0], func_num), 'w+') as f:
+#     for i in range(op.dim):
+#         f.write("{}\n".format(best_input[i]))
+#     f.write("{}\n".format(best_value))
