@@ -33,7 +33,6 @@ def de(function, bounds,  popsize, parameterPool):
                     best = trial_denorm     
         yield best, fitness[best_idx]
 
-
 def rand1Bin(i, popsize, pop, dimensions, F, crossp):
     idxs = [idx for idx in range(popsize) if idx != i]
     a, b, c = pop[np.random.choice(idxs, 3, replace = False)]
@@ -57,8 +56,6 @@ def currentToRand1(i, popsize, pop, dimensions, F, crossp):
     a, b, c = pop[np.random.choice(idxs, 3, replace = False)]
     mutant = np.clip(a + F * (b - c), 0, 1) # np.clip aim to restrict the value to [0,1]
     return pop[i] + random.uniform(0, 1)*(mutant-pop[i])
-
-
 
 class DE_optimizer(Function): # need to inherit this class "Function"
     def __init__(self, target_func):
@@ -109,46 +106,65 @@ if __name__ == '__main__':
     # op = DE_optimizer(1)
     # print(op.evalFunc([0.5,-0.5,0.5,-0.5,0.5,-0.5]))
 
-
     # function1: 1000, function2: 1500, function3: 2000, function4: 2500
 
-    fitnessList = [[] for _ in range(4)]
-    for i in range(10):
-        print(i)
-        func_num = 1
-        while func_num < 5:
-            if func_num == 1:
-                fes = 1000
-            elif func_num == 2:
-                fes = 1500
-            elif func_num == 3:
-                fes = 2000 
-            else:
-                fes = 2500
-
-            # you should implement your optimizer
-            op = DE_optimizer(func_num)
-            op.run(fes)
+    F = 0.1
+    while F < 2.05:
+        CR = 0.1
+        while CR < 1.05:
+            parameterPool = [[F, CR]]
             
-            best_input, best_value = op.get_optimal()
-            fitnessList[func_num-1].append(best_value)
+            fitnessList = [[] for _ in range(4)]
+            for i in range(30):
+                func_num = 1
+                while func_num < 5:
+                    if func_num == 1:
+                        fes = 1000
+                    elif func_num == 2:
+                        fes = 1500
+                    elif func_num == 3:
+                        fes = 2000 
+                    else:
+                        fes = 2500
+
+                    # you should implement your optimizer
+                    op = DE_optimizer(func_num)
+                    op.run(fes)
+                    
+                    best_input, best_value = op.get_optimal()
+                    fitnessList[func_num-1].append(best_value)
+
+                    func_num += 1 
+
+            fitnessNParray = np.array(fitnessList)
+            # print(fitnessNParray)
+            firnessPerFunction = np.average(fitnessNParray, axis=1)
+            # print(firnessPerFunction)
+
+            printFile = True
+            baseLine = [1.0e-6, 4.0e-9, 0.2, 0.5]
+            for i in range(4):
+                if firnessPerFunction[i] > baseLine[i]:
+                    printFile = False
+
+            if(printFile):
+                with open("./avergeFitness.txt",'a') as f:
+                    f.write("parameter: {}\n".format(parameterPool))
+                    for i in range(4):
+                        f.write("function{}: ".format(i+1))
+                        f.write("{}\n".format(firnessPerFunction[i]))
+                    f.write("----------------------------------------------------\n")
 
 
-            
-                
-            
-            func_num += 1 
+            print(parameterPool)
+            CR += 0.05
+        F += 0.05
 
-    fitnessNParray = np.array(fitnessList)
-    print(fitnessNParray)
-    firnessPerFunction = np.average(fitnessNParray, axis=1)
-    print(firnessPerFunction)
 
-    with open("./avergeFitness.txt",'w') as f:
-        f.write("parameter: {}\n".format(parameterPool))
-        for i in range(4):
-            f.write("function{}: ".format(i+1))
-            f.write("{}\n".format(firnessPerFunction[i]))
+    
+
+
+
 
 
 
