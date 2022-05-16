@@ -18,11 +18,12 @@ def de(function, bounds,  popsize, parameterPool):
     pop_denorm = min_b + pop * diff
     fitness = np.asarray([function(ind) for ind in pop_denorm])
     best_idx = np.argmin(fitness)
-    best = pop_denorm[best_idx]
+    best = pop[best_idx]
+    best_denorm = pop_denorm[best_idx]
     while True:
         for i in range(popsize):
             parameter = parameterPool[random.randrange(len(parameterPool))]
-            trial = rand1Bin(i, popsize, pop, dimensions, parameter[0], parameter[1])
+            trial = randToBest1Bin(i, popsize, pop, dimensions, parameter[0], parameter[1], best)
             trial_denorm = min_b + trial * diff
             f = function(trial_denorm)
             if f < fitness[i]:
@@ -30,11 +31,12 @@ def de(function, bounds,  popsize, parameterPool):
                 pop[i] = trial
                 if f < fitness[best_idx]:
                     best_idx = i
-                    best = trial_denorm     
-        yield best, fitness[best_idx]
+                    best_denorm = trial_denorm  
+                    best = trial ###############################
+        yield best_denorm, fitness[best_idx]
 
 
-def rand1Bin(i, popsize, pop, dimensions, F, crossp):
+def rand1Bin(i, popsize, pop, dimensions, F, crossp, best):
     idxs = [idx for idx in range(popsize) if idx != i]
     a, b, c = pop[np.random.choice(idxs, 3, replace = False)]
     mutant = np.clip(a + F * (b - c), 0, 1) # np.clip aim to restrict the value to [0,1]
@@ -43,7 +45,7 @@ def rand1Bin(i, popsize, pop, dimensions, F, crossp):
         cross_points[np.random.randint(0, dimensions)] = True # avoid False for all dimension
     return np.where(cross_points, mutant, pop[i]) # generate new candidate base on cross_points
 
-def rand2Bin(i, popsize, pop, dimensions, F, crossp):
+def rand2Bin(i, popsize, pop, dimensions, F, crossp, best):
     idxs = [idx for idx in range(popsize) if idx != i]
     a, b, c, d, e = pop[np.random.choice(idxs, 5, replace = False)]
     mutant = np.clip(a + F * (b - c + d - e), 0, 1) # np.clip aim to restrict the value to [0,1]
@@ -52,13 +54,40 @@ def rand2Bin(i, popsize, pop, dimensions, F, crossp):
         cross_points[np.random.randint(0, dimensions)] = True # avoid False for all dimension
     return np.where(cross_points, mutant, pop[i]) # generate new candidate base on cross_points
 
-def currentToRand1(i, popsize, pop, dimensions, F, crossp):
+def currentToRand1(i, popsize, pop, dimensions, F, crossp, best):
     idxs = [idx for idx in range(popsize) if idx != i]
     a, b, c = pop[np.random.choice(idxs, 3, replace = False)]
     mutant = a + F * (b - c)
     newpop =  pop[i] + random.uniform(0, 1)*(mutant-pop[i])
     newpop = np.clip(newpop, 0, 1)
     return newpop
+
+def best1Bin(i, popsize, pop, dimensions, F, crossp, best):
+    idxs = [idx for idx in range(popsize) if idx != i]
+    a, b = pop[np.random.choice(idxs, 2, replace = False)]
+    mutant = np.clip(best + F * (a - b), 0, 1) # np.clip aim to restrict the value to [0,1]
+    cross_points = np.random.rand(dimensions) < crossp # cross_points is an array like [False  True False False True False .....]
+    if not np.any(cross_points):
+        cross_points[np.random.randint(0, dimensions)] = True # avoid False for all dimension
+    return np.where(cross_points, mutant, pop[i]) # generate new candidate base on cross_points
+
+def best2Bin(i, popsize, pop, dimensions, F, crossp, best):
+    idxs = [idx for idx in range(popsize) if idx != i]
+    a, b, c, d = pop[np.random.choice(idxs, 4, replace = False)]
+    mutant = np.clip(best + F * (a - b + c - d), 0, 1) # np.clip aim to restrict the value to [0,1]
+    cross_points = np.random.rand(dimensions) < crossp # cross_points is an array like [False  True False False True False .....]
+    if not np.any(cross_points):
+        cross_points[np.random.randint(0, dimensions)] = True # avoid False for all dimension
+    return np.where(cross_points, mutant, pop[i]) # generate new candidate base on cross_points
+
+def randToBest1Bin(i, popsize, pop, dimensions, F, crossp, best):
+    idxs = [idx for idx in range(popsize) if idx != i]
+    a, b, c = pop[np.random.choice(idxs, 3, replace = False)]
+    mutant = np.clip(a + F * (b - c + best - a), 0, 1) # np.clip aim to restrict the value to [0,1]
+    cross_points = np.random.rand(dimensions) < crossp # cross_points is an array like [False  True False False True False .....]
+    if not np.any(cross_points):
+        cross_points[np.random.randint(0, dimensions)] = True # avoid False for all dimension
+    return np.where(cross_points, mutant, pop[i]) # generate new candidate base on cross_points
 
 
 
