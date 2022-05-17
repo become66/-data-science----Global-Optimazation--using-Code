@@ -7,6 +7,9 @@ from HomeworkFramework import Function
 
 
 parameterPool = [[0.3,0.1]]
+goodParameter = []
+goodfitnessPerFunctionSet = []
+
 
 # source of this function: https://pablormier.github.io/2017/09/05/a-tutorial-on-differential-evolution-with-python/ 
 
@@ -23,7 +26,7 @@ def de(function, bounds,  popsize, parameterPool):
     while True:
         for i in range(popsize):
             parameter = parameterPool[random.randrange(len(parameterPool))]
-            trial = randToBest1Bin(i, popsize, pop, dimensions, parameter[0], parameter[1], best)
+            trial = rand1Bin(i, popsize, pop, dimensions, parameter[0], parameter[1], best)
             trial_denorm = min_b + trial * diff
             f = function(trial_denorm)
             if f < fitness[i]:
@@ -147,7 +150,7 @@ if __name__ == '__main__':
             parameterPool = [[F, CR]]
             
             fitnessList = [[] for _ in range(4)]
-            for i in range(5):
+            for i in range(50):
                 func_num = 1
                 while func_num < 5:
                     if func_num == 1:
@@ -170,37 +173,45 @@ if __name__ == '__main__':
 
             fitnessNParray = np.array(fitnessList)
             # print(fitnessNParray)
-            firnessPerFunction = np.average(fitnessNParray, axis=1)
-            print(firnessPerFunction)
+            fitnessPerFunction = np.average(fitnessNParray, axis=1)
+            print(fitnessPerFunction)
 
-            printFile = True
+            good = True
             baseLine = [1.0e-6, 4.0e-9, 0.2, 0.5]
-            for i in range(4):
-                if firnessPerFunction[i] > baseLine[i]:
-                    printFile = False
+            for it in range(4):
+                if fitnessPerFunction[it] > baseLine[it]:
+                    good = False
 
-            if(printFile):
-                with open("./avergeFitness.txt",'a') as f:
-                    f.write("parameter: {}\n".format(parameterPool))
-                    for i in range(4):
-                        f.write("function{}: ".format(i+1))
-                        f.write("{}\n".format(firnessPerFunction[i]))
-                    f.write("----------------------------------------------------\n")
+            if(good):
+                print('append!')
+                goodParameter.append(parameterPool[0])
+                goodfitnessPerFunctionSet.append(fitnessPerFunction)
+
+                # with open("./avergeFitness.txt",'a') as f:
+                #     f.write("parameter: {}\n".format(parameterPool))
+                #     for i in range(4):
+                #         f.write("function{}: ".format(i+1))
+                #         f.write("{}\n".format(fitnessPerFunction[i]))
+                #     f.write("----------------------------------------------------\n")
 
 
             print(parameterPool)
             CR += 0.05
         F += 0.05
 
+    rankForEachParameter = np.array(goodfitnessPerFunctionSet).argsort(axis=0).argsort(axis=0)
+    averageRankForEachParameter = np.average(rankForEachParameter, axis=1)
+    print(len(goodParameter))
+    with open("./avergeFitnessrand1Bin.txt",'a') as f:
+        for i in range(len(goodParameter)):
+            f.write("parameter: {}\n".format(goodParameter[i]))
+            f.write("avergeRank: {}\n".format(averageRankForEachParameter[i]))
+            f.write("{}\n".format(rankForEachParameter[i]))
+            f.write("{}\n".format(goodfitnessPerFunctionSet[i]))
+            f.write("----------------------------------------------------\n")
+
+        # print(goodParameter)
+        # print(rankForEachParameter)
+        # print(averageRankForEachParameter)
 
     
-
-
-
-
-
-
-# with open("{}_function{}.txt".format(__file__.split('_')[0], func_num), 'w+') as f:
-#     for i in range(op.dim):
-#         f.write("{}\n".format(best_input[i]))
-#     f.write("{}\n".format(best_value))
