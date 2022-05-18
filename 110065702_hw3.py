@@ -7,7 +7,7 @@ from HomeworkFramework import Function
 
 
 parameterPool = [[0.3, 0.25],[0.3, 0.3],[0.35, 0.25],[0.35, 0.35],[0.35, 0.4],[0.4, 0.25],[0.4, 0.3],[0.4, 0.35],[0.4, 0.4],[0.4, 0.45],[0.4, 0.5],[0.4, 0.55],[0.4, 0.6],[0.45, 0.45],[0.45, 0.5],[0.45, 0.55],[0.45, 0.75]]
-
+# parameterPool = [[0.4,0.1],[0.4,0.9],[0.3,0.2]]
 
 def rand1Bin(i, popsize, pop, dimensions, F, crossp, best):
     idxs = [idx for idx in range(popsize) if idx != i]
@@ -79,17 +79,26 @@ def de(function, bounds,  popsize, parameterPool):
     while True:
         for i in range(popsize):
             parameter = parameterPool[random.randrange(len(parameterPool))]
-            functionChoiced = functionSet[random.randrange(len(functionSet))]
-            trial = functionChoiced(i, popsize, pop, dimensions, parameter[0], parameter[1], best)
-            trial_denorm = min_b + trial * diff
-            f = function(trial_denorm)
-            if f < fitness[i]:
-                fitness[i] = f
-                pop[i] = trial
-                if f < fitness[best_idx]:
+            trial = []
+            trial_denorm = []
+            f = []
+            trial.append(rand1Bin(i, popsize, pop, dimensions, parameter[0], parameter[1], best))
+            trial.append(rand2Bin(i, popsize, pop, dimensions, parameter[0], parameter[1], best))
+            trial.append(currentToRand1(i, popsize, pop, dimensions, parameter[0], parameter[1], best))
+            trial_denorm.append(min_b + trial[0] * diff)
+            trial_denorm.append(min_b + trial[1] * diff)
+            trial_denorm.append(min_b + trial[2] * diff)
+            f.append(function(trial_denorm[0]))
+            f.append(function(trial_denorm[1]))
+            f.append(function(trial_denorm[2]))
+            minIdx = np.argmin(np.array(f))
+            if f[minIdx] < fitness[i]:
+                fitness[i] = f[minIdx]
+                pop[i] = trial[minIdx]
+                if f[minIdx] < fitness[best_idx]:
                     best_idx = i
-                    best_denorm = trial_denorm  
-                    best = trial 
+                    best_denorm = trial_denorm[minIdx]  
+                    best = trial[minIdx] 
         yield best_denorm, fitness[best_idx]
 
 
@@ -126,7 +135,7 @@ class DE_optimizer(Function): # need to inherit this class "Function"
             boundList.append((self.lower, self.upper))
         de_Generator = de(self.evalFunc, boundList, self.popsize, self.parameterPool)
         self.generation+=1
-        while self.generation*self.popsize < FES:
+        while self.generation*self.popsize*3 < FES:
             # print('=====================FE=====================')
             # print(self.generation*self.popsize)
             self.optimal_solution, self.optimal_value = next(de_Generator)
