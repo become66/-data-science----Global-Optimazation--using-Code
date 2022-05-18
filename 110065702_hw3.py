@@ -6,7 +6,16 @@ import random
 from HomeworkFramework import Function
 
 
-parameterPool = [[0.3, 0.25],[0.3, 0.3],[0.35, 0.25],[0.35, 0.35],[0.35, 0.4],[0.4, 0.25],[0.4, 0.3],[0.4, 0.35],[0.4, 0.4],[0.4, 0.45],[0.4, 0.5],[0.4, 0.55],[0.4, 0.6],[0.45, 0.45],[0.45, 0.5],[0.45, 0.55],[0.45, 0.75]]
+parameterPool = [
+[0.3, 0.25],[0.3, 0.3],[0.35, 0.25],[0.35, 0.35],[0.35, 0.4],[0.4, 0.25],[0.4, 0.3],
+[0.4, 0.35],[0.4, 0.4],[0.4, 0.45],[0.4, 0.5],[0.4, 0.55],[0.4, 0.6],[0.45, 0.45],
+[0.45, 0.5],[0.45, 0.55],[0.45, 0.75],[0.2, 0.2],[0.3, 0.5],[0.3, 0.6],[0.2, 0.35],
+[0.2, 0.25],[0.2, 0.4],[0.25, 0.3],[0.25, 0.35],[0.25, 0.5],[0.3, 0.55],[0.35, 0.5],
+[0.5, 0.2],[0.55, 0.15],[0.6, 0.1],[0.65, 0.3],[0.65, 0.45],[0.35, 0.1],[0.35, 0.25],
+[0.35, 0.3],[0.4, 0.25],[0.45, 0.25],[0.45, 0.65],[0.45, 0.7],[0.5, 0.5],[0.5, 0.65],
+[0.65, 0.8],[0.4, 0.35],[0.25, 0.1],[0.3, 0.2],[0.35, 0.35],[0.4, 0.25],[0.45, 0.3],
+[0.45, 0.35],[0.5, 0.3],[0.6, 0.35],[0.6, 0.7],[0.65, 0.6]
+]
 
 
 def rand1Bin(i, popsize, pop, dimensions, F, crossp, best):
@@ -28,6 +37,8 @@ def rand2Bin(i, popsize, pop, dimensions, F, crossp, best):
     return np.where(cross_points, mutant, pop[i]) # generate new candidate base on cross_points
 
 def currentToRand1(i, popsize, pop, dimensions, F, crossp, best):
+    F_pool = [1.55,0.85,1.3,2]
+    F = F_pool[random.randrange(4)]
     idxs = [idx for idx in range(popsize) if idx != i]
     a, b, c = pop[np.random.choice(idxs, 3, replace = False)]
     mutant = a + F * (b - c)
@@ -62,7 +73,7 @@ def randToBest1Bin(i, popsize, pop, dimensions, F, crossp, best):
         cross_points[np.random.randint(0, dimensions)] = True # avoid False for all dimension
     return np.where(cross_points, mutant, pop[i]) # generate new candidate base on cross_points
 
-functionSet = [rand1Bin,rand2Bin,best1Bin,best2Bin,randToBest1Bin,currentToRand1]
+functionSet = [rand1Bin,rand1Bin,rand1Bin,rand2Bin,best1Bin,best2Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,currentToRand1]
 
 # source of this function: https://pablormier.github.io/2017/09/05/a-tutorial-on-differential-evolution-with-python/ 
 
