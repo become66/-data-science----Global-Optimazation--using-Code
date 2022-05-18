@@ -6,8 +6,6 @@ import random
 from HomeworkFramework import Function
 
 
-parameterPool = [[0.3, 0.25],[0.3, 0.3],[0.35, 0.25],[0.35, 0.35],[0.35, 0.4],[0.4, 0.25],[0.4, 0.3],[0.4, 0.35],[0.4, 0.4],[0.4, 0.45],[0.4, 0.5],[0.4, 0.55],[0.4, 0.6],[0.45, 0.45],[0.45, 0.5],[0.45, 0.55],[0.45, 0.75]]
-
 
 def rand1Bin(i, popsize, pop, dimensions, F, crossp, best):
     idxs = [idx for idx in range(popsize) if idx != i]
@@ -62,11 +60,19 @@ def randToBest1Bin(i, popsize, pop, dimensions, F, crossp, best):
         cross_points[np.random.randint(0, dimensions)] = True # avoid False for all dimension
     return np.where(cross_points, mutant, pop[i]) # generate new candidate base on cross_points
 
-functionSet = [rand1Bin,rand2Bin,best1Bin,best2Bin,randToBest1Bin,currentToRand1]
+functionSet = [rand1Bin,rand2Bin,currentToRand1,best1Bin,best2Bin,randToBest1Bin]
+parameterPools = [
+[[0.3, 0.25],[0.3, 0.3],[0.35, 0.25],[0.35, 0.35],[0.35, 0.4],[0.4, 0.25],[0.4, 0.3],[0.4, 0.35],[0.4, 0.4],[0.4, 0.45],[0.4, 0.5],[0.4, 0.55],[0.4, 0.6],[0.45, 0.45],[0.45, 0.5],[0.45, 0.55],[0.45, 0.75]],
+[[0.2, 0.2],[0.3, 0.5],[0.3, 0.6],[0.2, 0.35],[0.2, 0.25],[0.2, 0.4],[0.25, 0.3],[0.25, 0.35],[0.25, 0.5],[0.3, 0.55],[0.35, 0.5]],
+[[1.55, 0.55],[0.85, 0.1],[1.3, 0.3],[2, 0.9]],
+[[0.5, 0.2],[0.55, 0.15],[0.6, 0.1],[0.65, 0.3],[0.65, 0.45]],
+[[0.35, 0.1],[0.35, 0.25],[0.35, 0.3],[0.4, 0.25],[0.45, 0.25],[0.45, 0.65],[0.45, 0.7]],
+[[0.5, 0.5],[0.5, 0.65],[0.65, 0.8],[0.4, 0.35],[0.25, 0.1],[0.3, 0.2],[0.35, 0.35],[0.4, 0.25],[0.45, 0.3],[0.45, 0.35],[0.5, 0.3],[0.6, 0.35],[0.6, 0.7],[0.65, 0.6]]
+]
 
 # source of this function: https://pablormier.github.io/2017/09/05/a-tutorial-on-differential-evolution-with-python/ 
 
-def de(function, bounds,  popsize, parameterPool):
+def de(function, bounds,  popsize, parameterPools):
     dimensions = len(bounds)
     pop = np.random.rand(popsize, dimensions) #Create an array of the given shape and populate it with random samples from a uniform distribution over [0, 1)
     min_b, max_b = np.asarray(bounds).T
@@ -78,8 +84,10 @@ def de(function, bounds,  popsize, parameterPool):
     best_denorm = pop_denorm[best_idx]
     while True:
         for i in range(popsize):
+            functionIdx = random.randrange(len(functionSet))
+            functionChoiced = functionSet[functionIdx]
+            parameterPool = parameterPools[functionIdx]
             parameter = parameterPool[random.randrange(len(parameterPool))]
-            functionChoiced = functionSet[random.randrange(len(functionSet))]
             trial = functionChoiced(i, popsize, pop, dimensions, parameter[0], parameter[1], best)
             trial_denorm = min_b + trial * diff
             f = function(trial_denorm)
@@ -107,7 +115,7 @@ class DE_optimizer(Function): # need to inherit this class "Function"
         self.optimal_value = float("inf")
         self.optimal_solution = np.empty(self.dim)
         self.popsize = 20
-        self.parameterPool = parameterPool
+        self.parameterPools = parameterPools
 
     def evalFunc(self, solution):
         returnValue = self.f.evaluate(func_num, solution)
@@ -124,7 +132,7 @@ class DE_optimizer(Function): # need to inherit this class "Function"
         boundList = []
         for _ in range(self.dim):
             boundList.append((self.lower, self.upper))
-        de_Generator = de(self.evalFunc, boundList, self.popsize, self.parameterPool)
+        de_Generator = de(self.evalFunc, boundList, self.popsize, self.parameterPools)
         self.generation+=1
         while self.generation*self.popsize < FES:
             # print('=====================FE=====================')
