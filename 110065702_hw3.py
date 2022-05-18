@@ -6,34 +6,7 @@ import random
 from HomeworkFramework import Function
 
 
-parameterPool = [[0.3,0.1],[0.3,0.9],[0.2,0.2]]
-
-# source of this function: https://pablormier.github.io/2017/09/05/a-tutorial-on-differential-evolution-with-python/ 
-
-def de(function, bounds,  popsize, parameterPool):
-    dimensions = len(bounds)
-    pop = np.random.rand(popsize, dimensions) #Create an array of the given shape and populate it with random samples from a uniform distribution over [0, 1)
-    min_b, max_b = np.asarray(bounds).T
-    diff = np.fabs(min_b - max_b)
-    pop_denorm = min_b + pop * diff
-    fitness = np.asarray([function(ind) for ind in pop_denorm])
-    best_idx = np.argmin(fitness)
-    best = pop[best_idx]
-    best_denorm = pop_denorm[best_idx]
-    while True:
-        for i in range(popsize):
-            parameter = parameterPool[random.randrange(len(parameterPool))]
-            trial = randToBest1Bin(i, popsize, pop, dimensions, parameter[0], parameter[1], best)
-            trial_denorm = min_b + trial * diff
-            f = function(trial_denorm)
-            if f < fitness[i]:
-                fitness[i] = f
-                pop[i] = trial
-                if f < fitness[best_idx]:
-                    best_idx = i
-                    best_denorm = trial_denorm  
-                    best = trial ###############################
-        yield best_denorm, fitness[best_idx]
+parameterPool = [[0.3, 0.25],[0.3, 0.3],[0.35, 0.25],[0.35, 0.35],[0.35, 0.4],[0.4, 0.25],[0.4, 0.3],[0.4, 0.35],[0.4, 0.4],[0.4, 0.45],[0.4, 0.5],[0.4, 0.55],[0.4, 0.6],[0.45, 0.45],[0.45, 0.5],[0.45, 0.55],[0.45, 0.75]]
 
 
 def rand1Bin(i, popsize, pop, dimensions, F, crossp, best):
@@ -89,6 +62,35 @@ def randToBest1Bin(i, popsize, pop, dimensions, F, crossp, best):
         cross_points[np.random.randint(0, dimensions)] = True # avoid False for all dimension
     return np.where(cross_points, mutant, pop[i]) # generate new candidate base on cross_points
 
+functionSet = [rand1Bin,rand2Bin,best1Bin,best2Bin,randToBest1Bin,currentToRand1]
+
+# source of this function: https://pablormier.github.io/2017/09/05/a-tutorial-on-differential-evolution-with-python/ 
+
+def de(function, bounds,  popsize, parameterPool):
+    dimensions = len(bounds)
+    pop = np.random.rand(popsize, dimensions) #Create an array of the given shape and populate it with random samples from a uniform distribution over [0, 1)
+    min_b, max_b = np.asarray(bounds).T
+    diff = np.fabs(min_b - max_b)
+    pop_denorm = min_b + pop * diff
+    fitness = np.asarray([function(ind) for ind in pop_denorm])
+    best_idx = np.argmin(fitness)
+    best = pop[best_idx]
+    best_denorm = pop_denorm[best_idx]
+    while True:
+        for i in range(popsize):
+            parameter = parameterPool[random.randrange(len(parameterPool))]
+            functionChoiced = functionSet[random.randrange(len(functionSet))]
+            trial = functionChoiced(i, popsize, pop, dimensions, parameter[0], parameter[1], best)
+            trial_denorm = min_b + trial * diff
+            f = function(trial_denorm)
+            if f < fitness[i]:
+                fitness[i] = f
+                pop[i] = trial
+                if f < fitness[best_idx]:
+                    best_idx = i
+                    best_denorm = trial_denorm  
+                    best = trial 
+        yield best_denorm, fitness[best_idx]
 
 
 class DE_optimizer(Function): # need to inherit this class "Function"
@@ -125,11 +127,11 @@ class DE_optimizer(Function): # need to inherit this class "Function"
         de_Generator = de(self.evalFunc, boundList, self.popsize, self.parameterPool)
         self.generation+=1
         while self.generation*self.popsize < FES:
-            print('=====================FE=====================')
-            print(self.generation*self.popsize)
+            # print('=====================FE=====================')
+            # print(self.generation*self.popsize)
             self.optimal_solution, self.optimal_value = next(de_Generator)
             self.generation+=1
-            print("optimal: {}\n".format(self.get_optimal()[1]))
+            # print("optimal: {}\n".format(self.get_optimal()[1]))
 
             
 
@@ -157,7 +159,8 @@ if __name__ == '__main__':
         op.run(fes)
         
         best_input, best_value = op.get_optimal()
-        print(best_input, best_value)
+        # print(best_input, best_value)
+        print(best_value)
         
         # change the name of this file to your student_ID and it will output properlly
         with open("{}_function{}.txt".format(__file__.split('_')[0], func_num), 'w+') as f:
