@@ -118,7 +118,7 @@ class DE_optimizer(Function): # need to inherit this class "Function"
         self.parameterPools = parameterPools
 
     def evalFunc(self, solution):
-        returnValue = self.f.evaluate(func_num, solution)
+        returnValue = self.f.evaluate(self.target_func, solution)
         if returnValue == "ReachFunctionLimit":
             print("ReachFunctionLimit")
             exit() 
