@@ -73,7 +73,7 @@ def randToBest1Bin(i, popsize, pop, dimensions, F, crossp, best):
         cross_points[np.random.randint(0, dimensions)] = True # avoid False for all dimension
     return np.where(cross_points, mutant, pop[i]) # generate new candidate base on cross_points
 
-functionSet = [rand1Bin,rand1Bin,rand1Bin,rand2Bin,best1Bin,best2Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,currentToRand1]
+functionSet = [randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,rand1Bin,rand1Bin,rand1Bin,rand2Bin,best1Bin,best2Bin]
 
 # source of this function: https://pablormier.github.io/2017/09/05/a-tutorial-on-differential-evolution-with-python/ 
 
@@ -166,16 +166,26 @@ if __name__ == '__main__':
             fes = 2500
 
         # you should implement your optimizer
-        op = DE_optimizer(func_num)
-        op.run(fes)
-        
-        best_input, best_value = op.get_optimal()
-        # print(best_input, best_value)
-        print(best_value)
+
+        bestInputList = []
+        bestValueList = []
+        for _ in range(300):
+            op = DE_optimizer(func_num)
+            op.run(fes)
+            best_input, best_value = op.get_optimal()
+            # print(best_input, best_value)
+            # print(best_value)
+            bestInputList.append(best_input)
+            bestValueList.append(best_value)
+
+        bestValueArray = np.array(bestValueList)
+        index_min = np.argmin(bestValueArray)
+
         
         # change the name of this file to your student_ID and it will output properlly
         with open("{}_function{}.txt".format(__file__.split('_')[0], func_num), 'w+') as f:
             for i in range(op.dim):
-                f.write("{}\n".format(best_input[i]))
-            f.write("{}\n".format(best_value))
+                f.write("{}\n".format(bestInputList[index_min][i]))
+            f.write("{}\n".format(bestValueList[index_min]))
         func_num += 1 
+        print(bestValueList[index_min])
