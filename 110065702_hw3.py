@@ -3,6 +3,7 @@ import numpy as np
 # you must use python 3.6, 3.7, 3.8, 3.9 for sourcedefender
 import sourcedefender
 import random
+import time
 from HomeworkFramework import Function
 
 
@@ -16,6 +17,8 @@ parameterPool = [
 [0.65, 0.8],[0.4, 0.35],[0.25, 0.1],[0.3, 0.2],[0.35, 0.35],[0.4, 0.25],[0.45, 0.3],
 [0.45, 0.35],[0.5, 0.3],[0.6, 0.35],[0.6, 0.7],[0.65, 0.6]
 ]
+
+# parameterPool = [[0.5, 0.5],[0.5, 0.65],[0.65, 0.8],[0.4, 0.35],[0.25, 0.1],[0.3, 0.2],[0.35, 0.35],[0.4, 0.25],[0.45, 0.3],[0.45, 0.35],[0.5, 0.3],[0.6, 0.35],[0.6, 0.7],[0.65, 0.6]]
 
 
 def rand1Bin(i, popsize, pop, dimensions, F, crossp, best):
@@ -73,11 +76,26 @@ def randToBest1Bin(i, popsize, pop, dimensions, F, crossp, best):
         cross_points[np.random.randint(0, dimensions)] = True # avoid False for all dimension
     return np.where(cross_points, mutant, pop[i]) # generate new candidate base on cross_points
 
-functionSet = [rand1Bin,rand1Bin,rand1Bin,rand2Bin,best1Bin,best2Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,currentToRand1]
+# functionSet = [rand1Bin,rand1Bin,rand1Bin,rand2Bin,best1Bin,best2Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,currentToRand1]
+functionSetArray = [
+[randToBest1Bin], 
+[rand1Bin],
+[rand2Bin],
+[best1Bin],
+[best2Bin],
+[currentToRand1],
+[rand1Bin,rand2Bin,best1Bin,best2Bin,randToBest1Bin,rand1Bin,rand2Bin,best1Bin,best2Bin,randToBest1Bin,rand1Bin,rand2Bin,best1Bin,best2Bin,randToBest1Bin,rand1Bin,rand2Bin,best1Bin,best2Bin,randToBest1Bin,currentToRand1],
+[randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,rand1Bin,rand2Bin,best1Bin,best2Bin,currentToRand1],
+[randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,rand1Bin,rand2Bin,best1Bin,best2Bin],
+[randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,rand1Bin,rand2Bin,best1Bin,best2Bin,currentToRand1],
+[randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,rand1Bin,rand1Bin,rand1Bin,rand2Bin,best1Bin,best2Bin],
+[randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,randToBest1Bin,rand1Bin,rand1Bin,rand1Bin,rand2Bin,best1Bin,best2Bin,currentToRand1]
+]
+
 
 # source of this function: https://pablormier.github.io/2017/09/05/a-tutorial-on-differential-evolution-with-python/ 
 
-def de(function, bounds,  popsize, parameterPool):
+def de(function, bounds,  popsize, parameterPool, functionSet):
     dimensions = len(bounds)
     pop = np.random.rand(popsize, dimensions) #Create an array of the given shape and populate it with random samples from a uniform distribution over [0, 1)
     min_b, max_b = np.asarray(bounds).T
@@ -105,7 +123,7 @@ def de(function, bounds,  popsize, parameterPool):
 
 
 class DE_optimizer(Function): # need to inherit this class "Function"
-    def __init__(self, target_func):
+    def __init__(self, target_func,parameterPool, functionSet):
         super().__init__(target_func) # must have this init to work normally
 
         self.lower = self.f.lower(target_func)
@@ -119,6 +137,7 @@ class DE_optimizer(Function): # need to inherit this class "Function"
         self.optimal_solution = np.empty(self.dim)
         self.popsize = 20
         self.parameterPool = parameterPool
+        self.functionSet = functionSet
 
     def evalFunc(self, solution):
         returnValue = self.f.evaluate(self.target_func, solution)
@@ -135,7 +154,7 @@ class DE_optimizer(Function): # need to inherit this class "Function"
         boundList = []
         for _ in range(self.dim):
             boundList.append((self.lower, self.upper))
-        de_Generator = de(self.evalFunc, boundList, self.popsize, self.parameterPool)
+        de_Generator = de(self.evalFunc, boundList, self.popsize, self.parameterPool, self.functionSet)
         self.generation+=1
         while self.generation*self.popsize < FES:
             # print('=====================FE=====================')
@@ -147,35 +166,50 @@ class DE_optimizer(Function): # need to inherit this class "Function"
             
 
 if __name__ == '__main__':
-    func_num = 1
+    start_time = time.time()
     fes = 0
 
     # op = DE_optimizer(1)
     # print(op.evalFunc([0.5,-0.5,0.5,-0.5,0.5,-0.5]))
 
+    for functionSet in functionSetArray:
+        print('functionSet: ', functionSet)
+        # function1: 1000, function2: 1500, function3: 2000, function4: 2500
+        func_num = 1
+        while func_num < 5:
+            if func_num == 1:
+                fes = 1000
+            elif func_num == 2:
+                fes = 1500
+            elif func_num == 3:
+                fes = 2000 
+            else:
+                fes = 2500
 
-    # function1: 1000, function2: 1500, function3: 2000, function4: 2500
-    while func_num < 5:
-        if func_num == 1:
-            fes = 1000
-        elif func_num == 2:
-            fes = 1500
-        elif func_num == 3:
-            fes = 2000 
-        else:
-            fes = 2500
+            # you should implement your optimizer
 
-        # you should implement your optimizer
-        op = DE_optimizer(func_num)
-        op.run(fes)
-        
-        best_input, best_value = op.get_optimal()
-        # print(best_input, best_value)
-        print(best_value)
-        
-        # change the name of this file to your student_ID and it will output properlly
-        with open("{}_function{}.txt".format(__file__.split('_')[0], func_num), 'w+') as f:
-            for i in range(op.dim):
-                f.write("{}\n".format(best_input[i]))
-            f.write("{}\n".format(best_value))
-        func_num += 1 
+            bestInputList = []
+            bestValueList = []
+            for _ in range(600):
+                op = DE_optimizer(func_num, parameterPool, functionSet)
+                op.run(fes)
+                best_input, best_value = op.get_optimal()
+                # print(best_input, best_value)
+                # print(best_value)
+                bestInputList.append(best_input)
+                bestValueList.append(best_value)
+
+            bestValueArray = np.array(bestValueList)
+            index_min = np.argmin(bestValueArray)
+
+            
+            # change the name of this file to your student_ID and it will output properlly
+            with open("{}_function{}.txt".format(__file__.split('_')[0], func_num), 'w+') as f:
+                for i in range(op.dim):
+                    f.write("{}\n".format(bestInputList[index_min][i]))
+                f.write("{}\n".format(bestValueList[index_min]))
+            print('best: ',bestValueList[index_min],';  average: ',np.average(bestValueArray))
+            func_num += 1 
+        print('---------------------------------------------------')
+    print("--- %s seconds ---" % (time.time() - start_time))
+
